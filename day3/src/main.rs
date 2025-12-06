@@ -8,27 +8,30 @@ fn main() {
     let mut joltages = vec![];
     
     for bank in lines {
-        let mut highest_num = 0;
-        let mut second_highest_num = 0;
+        let mut nums = [1; 12];
 
         for (i, ch) in bank.chars().enumerate() {
             let num = char::to_digit(ch, RADIX).expect("Failed to parse char to digit.");
-            if num > highest_num && i != bank.len() - 1{
-                highest_num = num;
-                second_highest_num = 0;
-            } else if num > second_highest_num {
-                second_highest_num = num;
+            
+            for j in 0..12 {
+                let comp = nums[j];
+                if num > comp && i < bank.len() - 12 + 1 + j {
+                    for item in nums.iter_mut().skip(j) {
+                        *item = 1;
+                    }
+                    nums[j] = num;
+                    break;
+                }
             }
         }
 
-        let first_char = char::from_digit(highest_num, RADIX).expect("Failed to parse first char to digit.");
-        let second_char = char::from_digit(second_highest_num, RADIX).expect("Failed to parse second char to digit");
-        let whole_number_str: String = [first_char, second_char].iter().collect();
-
-        let whole_number = whole_number_str.parse::<u32>().expect("Failed to parse string to number");
+        let whole_number_str: String = nums.iter()
+            .map(|n| char::from_digit(*n, RADIX).expect("Failed to convert number to char"))
+            .collect();
+        let whole_number = whole_number_str.parse::<u64>().expect("Failed to parse string to number");
         joltages.push(whole_number);
     }
 
-    let sum: u32 = joltages.iter().sum();
+    let sum: u64 = joltages.iter().sum();
     println!("The sum of all joltages is {sum}!");
 }
