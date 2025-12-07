@@ -2,7 +2,7 @@ use std::fs;
 
 struct Lock {
     // I know this could be an u8 but the logic would be a bit trickier
-    num: i32,
+    num: u8,
     zeroes: u32
 }
 
@@ -11,26 +11,25 @@ impl Lock {
         Self { num: 50, zeroes: 0 }
     }
 
-    pub fn right(&mut self, amount: i32) {
-        self.num += amount;
-        if self.num >= 100 {
-            self.num %= 100;
-        }
-        
-        if self.num == 0 {
-            self.zeroes += 1;
+    pub fn right(&mut self, amount: u32) {
+        for _ in 0..amount {
+            self.num += 1;
+            if self.num == 100 {
+                self.num = 0;
+                self.zeroes += 1;
+            }
         }
     }
 
-    pub fn left(&mut self, mut amount: i32) {
-        amount %= 100;
-        self.num -= amount;
-        if self.num < 0 {
-            self.num += 100;
-        }
-
-        if self.num == 0 {
-            self.zeroes += 1;
+    pub fn left(&mut self, amount: u32) {
+        for _ in 0..amount {
+            if self.num == 1 {
+                self.zeroes += 1;
+            }
+            if self.num == 0 {
+                self.num = 100;
+            }
+            self.num -= 1;
         }
     }
 }
@@ -42,7 +41,7 @@ fn main() {
 
     for line in input.lines() {
         let dir = &line[0..1];
-        let amount = &line[1..].parse::<i32>().expect("Could not parse line. Not a valid integer.");
+        let amount = &line[1..].parse::<u32>().expect("Could not parse line. Not a valid integer.");
 
         match dir {
             "R" => lock.right(*amount),
