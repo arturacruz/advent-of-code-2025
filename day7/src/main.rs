@@ -8,8 +8,7 @@ fn main() {
     let text = fs::read_to_string("assets/input.txt").expect("Failed to open file.");
 
     let mut map = Map::new(text);
-    let mut count = 0;
-    map.search(&mut count);
+    let count = map.search();
     
     println!("The beam was split {count} times.");
 }

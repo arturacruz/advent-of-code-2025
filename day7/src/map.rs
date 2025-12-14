@@ -1,8 +1,17 @@
-use std::fmt::Debug;
-
 use crate::position::Position;
 
-#[derive(PartialEq, Debug)]
+struct Cell {
+    part: Part,
+    value: u128
+}
+
+impl Cell {
+    fn new(part: Part) -> Self {
+        Self { part, value: 0 }
+    }
+}
+
+#[derive(PartialEq, Eq)]
 enum Part {
     Empty,
     Splitter,
@@ -11,7 +20,7 @@ enum Part {
 }
 
 pub struct Map {
-    matrix: Vec<Vec<Part>>,
+    matrix: Vec<Vec<Cell>>,
     starting_pos: Position
 }
 
@@ -33,7 +42,7 @@ impl Map {
                     },
                     o => panic!("Invalid character: {o}"),
                 };
-                matrix_line.push(value);
+                matrix_line.push(Cell::new(value));
             }
             matrix.push(matrix_line);
         }
@@ -41,10 +50,11 @@ impl Map {
         Self { matrix, starting_pos }
     }
 
-    fn update(&mut self, pos: &Position, value: Part) {
+    fn update(&mut self, pos: &Position, value: u128) {
         let (x, y) = pos.get();
         let (x, y) = (x as usize, y as usize);
-        self.matrix[y][x] = value;
+        self.matrix[y][x].value = value;
+        self.matrix[y][x].part = Part::Beam;
     }
 
     fn is_in_bounds(&self, pos: &Position) -> bool {
@@ -53,7 +63,7 @@ impl Map {
         x >= 0 && x < self.matrix[0].len() as i32 && y >= 0 && y < self.matrix.len() as i32
     }
 
-    fn get(&self, pos: &Position) -> Option<&Part> {
+    fn get(&self, pos: &Position) -> Option<&Cell> {
         if !self.is_in_bounds(pos) {
             return None;
         }
@@ -61,48 +71,29 @@ impl Map {
         Some(&self.matrix[y as usize][x as usize])
     }
 
-    pub fn search(&mut self, count: &mut u32) {
-        self.search_aux(self.starting_pos.clone(), count);
+    pub fn search(&mut self) -> u128 {
+        self.search_aux(self.starting_pos.clone())
     }
 
-    fn search_aux(&mut self, pos: Position, count: &mut u32) {
+    fn search_aux(&mut self, pos: Position) -> u128 {
         let val = match self.get(&pos) {
-            None => return,
+            None => return 1,
             Some(b) => b,
         };
 
-        match val {
+        match val.part {
             Part::Empty => {
-                self.update(&pos, Part::Beam);
-                self.search_aux(pos + Position::DOWN, count);
+                let res = self.search_aux(pos.clone() + Position::DOWN);
+                self.update(&pos, res);
+                res
             },
             Part::Splitter => {
-                *count += 1;
-                self.search_aux(pos.clone() + Position::LEFT, count);
-                self.search_aux(pos + Position::RIGHT, count);
+                let left = self.search_aux(pos.clone() + Position::LEFT);
+                let right = self.search_aux(pos + Position::RIGHT);
+                left + right
             },
-            Part::Starter => self.search_aux(pos + Position::DOWN, count),
-            _ => (),
+            Part::Starter => self.search_aux(pos + Position::DOWN),
+            Part::Beam => self.get(&pos).expect("Expected a value in position").value,
         }
     }
 }
-
-impl Debug for Map {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut out = String::new();
-        for line in &self.matrix {
-            for val in line {
-                let c = match val {
-                    Part::Empty => '.',
-                    Part::Starter => 'S',
-                    Part::Beam => '|',
-                    Part::Splitter => '^'
-                };
-                out.push(c);
-            }
-            out.push('\n');
-        }
-        write!(f, "{}", out)
-    }
-}
-
