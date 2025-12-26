@@ -18,16 +18,20 @@ fn main() {
         InputText::Test => "assets/test.txt",
         InputText::Input => "assets/input.txt"
     };
+    let len = match INPUT {
+        InputText::Input => 1000,
+        InputText::Test => 20
+    };
     let text = fs::read_to_string(path).expect("Could not find file");
 
-    let mut coords = Vec::with_capacity(text.len());
+    let mut coords = Vec::with_capacity(len);
 
     for line in text.lines() {
         let coord = line.split(",").collect::<Coordinates>();
         coords.push(coord);
     }
 
-    let mut dists = Vec::with_capacity(coords.len());
+    let mut dists = Vec::with_capacity(len.pow(2));
     
     for i in 0..coords.len() {
         for j in i + 1..coords.len() {
@@ -39,15 +43,12 @@ fn main() {
 
     dists.sort_by(|s, o| f64::total_cmp(&s.value, &o.value));
 
-    let mut graph = Graph::new();
+    let mut graph = Graph::new(len);
 
-    let amount = match INPUT {
-        InputText::Test => 10,
-        InputText::Input => 1000,
-    };
-    for dist in dists.iter().take(amount) {
-        graph.add(&dist.coords.0, &dist.coords.1);
+    for dist in dists.iter() {
+        if graph.add(&dist.coords.0, &dist.coords.1) {
+            println!("{}", dist.coords.0.x * dist.coords.1.x);
+            break
+        }
     }
-
-    println!("{}", graph.get_biggest());
 }

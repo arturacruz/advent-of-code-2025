@@ -3,15 +3,19 @@ use std::collections::HashMap;
 use crate::coords::Coordinates;
 
 pub struct Graph<'a> {
-    coords: HashMap<Coordinates, &'a Coordinates>
+    coords: HashMap<Coordinates, &'a Coordinates>,
+    len: usize
 }
 
 impl<'a> Graph<'a> {
-    pub fn new() -> Self {
-        Self { coords: HashMap::new()  }
+    pub fn new(len: usize) -> Self {
+        Self { 
+            coords: HashMap::new(),
+            len
+        }
     } 
 
-    pub fn add(&mut self, key: &'a Coordinates, val: &'a Coordinates) {
+    pub fn add(&mut self, key: &'a Coordinates, val: &'a Coordinates) -> bool {
         let parent1 = self.find(key);
         let parent2 = self.find(val);
 
@@ -25,6 +29,8 @@ impl<'a> Graph<'a> {
             self.coords.insert(key.clone(), key);
             self.coords.insert(val.clone(), key);
         }
+
+        self.count()
     }
 
     fn parent(&self, val: &'a Coordinates) -> Option<&'a Coordinates> {
@@ -44,7 +50,8 @@ impl<'a> Graph<'a> {
         self.coords.insert(old.clone(), new);
     }
 
-    pub fn get_biggest(&self) -> usize {
+    fn count(&self) -> bool {
+
         let mut sizes: HashMap<&Coordinates, usize> = HashMap::new();
         
         for key in self.coords.keys() {
@@ -54,13 +61,11 @@ impl<'a> Graph<'a> {
             } else {
                 sizes.insert(parent, 1);
             }
-        }
-        
-        let mut sizes: Vec<_> = sizes.iter().collect();
-
-        sizes.sort_by(|s, o| s.1.cmp(o.1));
-        sizes.reverse();
-
-        sizes.iter().take(3).map(|item| item.1).product::<usize>()
+            if sizes.len() > 1 {
+                return false;
+            }
+        }       
+        *sizes.values().next().unwrap() == self.len
     }
+
 }
