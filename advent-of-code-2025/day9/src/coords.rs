@@ -1,6 +1,6 @@
 pub struct Coord {
-    pub x: i32,
-    pub y: i32
+    pub x: usize,
+    pub y: usize
 }
 
 impl Coord {
@@ -13,6 +13,7 @@ impl Coord {
     }
 
     pub fn area(&self, other: &Self) -> usize {
-        ((self.x - other.x).unsigned_abs() as usize + 1) * ((self.y - other.y).unsigned_abs() as usize + 1)
+        ((self.x as i32 - other.x as i32).unsigned_abs() as usize + 1) * 
+            ((self.y as i32 - other.y as i32).unsigned_abs() as usize + 1)
     }
 }
