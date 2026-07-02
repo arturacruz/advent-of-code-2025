@@ -27,15 +27,15 @@ impl Game {
         }
     }
 
-    fn is_possible(&self) -> bool {
-        self.red <= 12 && self.green <= 13 && self.blue <= 14
+    fn power(&self) -> usize {
+        self.red as usize * self.green as usize * self.blue as usize
     }
 }
 
 fn main() {
-    let input = get_input(InputType::Input);
+    let input = get_input(InputType::Test);
 
-    let mut possible_games = vec![];
+    let mut games = vec![];
 
     for (id, line) in input.lines().enumerate() {
         let line = line
@@ -60,13 +60,9 @@ fn main() {
                 game.set_max(color, amount);
             }
         }
-        if game.is_possible() {
-            possible_games.push(id + 1);
-        }
+        games.push(game.power());
     }
 
-    println!("possible games: {possible_games:?}");
-    
-    let sum = possible_games.iter().sum::<usize>();
-    println!("The sum of all possible games IDs is {sum}");
+    let sum = games.iter().sum::<usize>();
+    println!("The sum of all games' power is {sum}");
 }
